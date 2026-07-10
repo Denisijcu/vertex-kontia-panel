@@ -1,1 +1,304 @@
-/* You can add global styles to this file, and also import other style files */
+/* ====================================================================
+   KONTIA — panel de control
+   Concepto: "El libro mayor de 1494 con un agente de 2026"
+   Tinta verde de libro contable + latón de lámpara de banquero.
+   Números SIEMPRE en monoespaciada tabular, como un ledger de verdad.
+
+   Válido como styles.css o styles.scss.
+   ==================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Paleta */
+  --tinta:        #0e1512;
+  --superficie:   #17201b;
+  --superficie-2: #1e2a23;
+  --linea:        #2a3630;
+  --papel:        #e8e4d8;
+  --papel-tenue:  #9aa69d;
+  --laton:        #c8a24b;
+  --cuadrado:     #4caf7d;
+  --roto:         #c25450;
+  --pendiente:    #d9a441;
+
+  /* Tipografía */
+  --f-display: 'Libre Caslon Text', serif;
+  --f-ui:      'IBM Plex Sans', sans-serif;
+  --f-cifras:  'IBM Plex Mono', monospace;
+
+  --radio: 6px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--tinta);
+  color: var(--papel);
+  font-family: var(--f-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;   /* jamás scroll horizontal a nivel de página */
+}
+
+/* Cifras contables: monoespaciadas, tabulares, alineadas a la derecha */
+.cifra {
+  font-family: var(--f-cifras);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+h1, h2, h3 { font-weight: 600; }
+
+.display { font-family: var(--f-display); font-weight: 400; }
+
+button {
+  font-family: var(--f-ui);
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid var(--linea);
+  background: var(--superficie-2);
+  color: var(--papel);
+  padding: 8px 16px;
+  min-height: 40px;               /* touch target */
+  border-radius: var(--radio);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+button:hover { border-color: var(--laton); }
+button:focus-visible { outline: 2px solid var(--laton); outline-offset: 2px; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+button.primaria {
+  background: var(--laton);
+  border-color: var(--laton);
+  color: var(--tinta);
+  font-weight: 600;
+}
+button.primaria:hover { filter: brightness(1.08); }
+
+input, textarea {
+  font-family: var(--f-ui);
+  font-size: 16px;                /* 16px evita el auto-zoom de iOS */
+  background: var(--tinta);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  color: var(--papel);
+  padding: 10px 12px;
+  width: 100%;
+}
+input:focus, textarea:focus { outline: none; border-color: var(--laton); }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--papel-tenue);
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--linea);
+}
+td { padding: 9px 12px; border-bottom: 1px solid var(--linea); }
+tr:hover td { background: var(--superficie-2); }
+
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 20px;
+  overflow-x: auto;               /* tablas anchas scrollean DENTRO de la
+                                     card, jamás rompen el layout */
+  -webkit-overflow-scrolling: touch;
+}
+
+.eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--laton);
+  margin-bottom: 6px;
+}
+
+/* ====================================================================
+   CAPA RESPONSIVE — móvil primero en corregir, tablet de regalo
+   Los estilos globales SÍ penetran los componentes (la encapsulación
+   de Angular solo evita fugas hacia afuera), así que aquí se ajusta
+   el chrome, el Sello, el journal y los formularios sin tocar TS.
+   ==================================================================== */
+
+/* ---------- Tablet y abajo (≤ 900px) ---------- */
+@media (max-width: 900px) {
+  .contenido { padding: 20px 16px !important; max-width: 100% !important; }
+  h1 { font-size: 24px; }
+
+  /* Dashboard: reportes en una columna */
+  .grid { grid-template-columns: 1fr !important; }
+}
+
+/* ---------- Móvil (≤ 800px) ---------- */
+@media (max-width: 800px) {
+  body { font-size: 14px; }
+
+  /* --- Sidebar horizontal compacto --- */
+  .sidebar {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px 12px !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .brand-name { font-size: 18px !important; }
+  .brand-sub { display: none !important; }
+  .sidebar nav { flex-direction: row !important; gap: 2px !important; }
+  .sidebar nav a {
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+    border-left: none !important;
+    border-bottom: 2px solid transparent;
+  }
+  .sidebar nav a.activa { border-bottom-color: var(--laton); }
+
+  /* --- El Sello de Cuadre: ecuación apilada --- */
+  .sello { padding: 20px 16px !important; }
+  .ecuacion {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .ecuacion .termino {
+    flex-direction: row !important;
+    align-items: baseline !important;
+    gap: 10px !important;
+    width: 100%;
+  }
+  .ecuacion .valor { font-size: 22px !important; }
+  .ecuacion .signo { display: none !important; }  /* el orden ya narra la ecuación */
+  .estampa {
+    top: 12px !important;
+    right: 12px !important;
+    font-size: 10px !important;
+    padding: 4px 10px !important;
+  }
+
+  /* --- Tablas: densidad de móvil --- */
+  th { padding: 6px 8px; font-size: 10.5px; }
+  td { padding: 8px 8px; font-size: 13px; }
+  .card { padding: 14px 12px; }
+
+  /* El journal (7 columnas) necesita su ancho: scrollea dentro de la card */
+  .card table { min-width: 560px; }
+  /* Las tablas internas de líneas expandidas no fuerzan mínimo */
+  .card table .lineas, .lineas { min-width: 0 !important; }
+
+  /* --- Agente: captura cómoda con el pulgar --- */
+  .captura textarea { min-height: 72px; }
+  .acciones { flex-wrap: wrap; }
+  .acciones button { flex: 1 1 auto; }
+  .propuesta { flex-direction: column; align-items: stretch !important; }
+  .propuesta-acciones { justify-content: stretch; }
+  .propuesta-acciones button { flex: 1; }
+  .propuesta-acciones input { width: 100% !important; }
+
+  /* --- Header: ya oculta la Ecuación Viva; compactar chips --- */
+  .barra { padding: 0 12px !important; height: 46px !important; }
+  .chip { font-size: 10.5px !important; padding: 3px 7px !important; }
+
+  /* --- Footer: dos líneas limpias --- */
+  .registro {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    padding: 8px 12px !important;
+  }
+  .registro .grupo { flex-wrap: wrap; white-space: normal !important; }
+
+  /* --- Login: la portada respira en pantalla chica --- */
+  .libro { padding: 32px 22px 24px !important; }
+  .nombre { font-size: 36px !important; }
+
+  /* --- 404 --- */
+  .folio { margin: 3vh 12px 0 !important; padding: 28px 18px !important; }
+  .folio .numero { font-size: 64px !important; }
+}
+
+/* ---------- Móvil chico (≤ 380px) ---------- */
+@media (max-width: 380px) {
+  .ecuacion .valor { font-size: 19px !important; }
+  .sidebar nav a { padding: 8px 7px !important; font-size: 12px !important; }
+  .chip:last-of-type { display: none; }   /* la fecha cede; el período queda */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ====================================================================
+   LOGIN RESPONSIVE — la portada del libro en el bolsillo
+   ==================================================================== */
+
+/* Base: centrado robusto en móvil (dvh = altura real con barra del
+   navegador; el keyboard no rompe el layout) */
+.portada {
+  min-height: 100dvh !important;
+  padding: 16px !important;
+  padding-top: max(16px, env(safe-area-inset-top)) !important;
+  padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+}
+
+.libro {
+  width: 100% !important;
+  max-width: 400px !important;
+}
+
+/* ---------- Móvil (≤ 480px) ---------- */
+@media (max-width: 480px) {
+  .portada { align-items: flex-start !important; padding-top: 8vh !important; }
+
+  .libro {
+    padding: 30px 20px 22px !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .marca { margin-bottom: 26px !important; }
+  .nombre { font-size: 34px !important; }
+  .lema {
+    font-size: 8.5px !important;
+    letter-spacing: 0.14em !important;
+    line-height: 1.6;
+    max-width: 260px;
+  }
+
+  .formulario { gap: 15px !important; }
+  .formulario label { font-size: 12px !important; }
+  .formulario input { padding: 12px !important; }   /* dedo cómodo */
+
+  .abrir {
+    padding: 14px !important;
+    font-size: 16px !important;
+    width: 100%;
+  }
+
+  .error { font-size: 11px !important; }
+  .pie { margin-top: 22px !important; font-size: 9px !important; }
+}
+
+/* ---------- Móvil chico (≤ 360px) ---------- */
+@media (max-width: 360px) {
+  .nombre { font-size: 29px !important; }
+  .libro { padding: 24px 16px 18px !important; }
+}
+
+/* Teléfono en horizontal: que el form no quede cortado por el keyboard */
+@media (max-height: 500px) and (orientation: landscape) {
+  .portada { align-items: flex-start !important; padding-top: 12px !important; }
+  .marca { margin-bottom: 16px !important; }
+  .nombre { font-size: 26px !important; }
+  .pie { display: none; }
+}
