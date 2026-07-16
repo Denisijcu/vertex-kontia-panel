@@ -5,8 +5,15 @@ import { AccountNode, KontiaApi } from '../../core/services/kontia-api.service';
   selector: 'app-cuentas',
   standalone: true,
   template: `
-    <div class="eyebrow">Plan de cuentas · template vertex_llc_us</div>
-    <h1 class="titulo">Cuentas</h1>
+    <div class="cabecera">
+      <div>
+        <div class="eyebrow">Plan de cuentas · template vertex_llc_us</div>
+        <h1 class="titulo">Cuentas</h1>
+      </div>
+      <button class="btn-pdf" (click)="descargarBalanzaPdf()" [disabled]="descargandoPdf()">
+        {{ descargandoPdf() ? 'Generando…' : 'Descargar Balanza (PDF)' }}
+      </button>
+    </div>
 
     @if (cargando()) {
       <section class="card tenue">Cargando el plan…</section>
@@ -46,12 +53,33 @@ import { AccountNode, KontiaApi } from '../../core/services/kontia-api.service';
     .tipo-equity { color: var(--laton); }
     .tipo-income { color: var(--cuadrado); }
     .tipo-expense { color: var(--roto); }
+    /* --- Botón de descarga de PDF (punto 15) --- */
+    .cabecera {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-pdf {
+      font-size: 12px;
+      padding: 7px 14px;
+      border-radius: var(--radio);
+      border: 1px solid var(--linea);
+      background: var(--superficie-2);
+      color: var(--papel);
+      cursor: pointer;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .btn-pdf:hover { border-color: var(--laton); color: var(--laton); }
+    .btn-pdf:disabled { opacity: 0.5; cursor: default; }
   `],
 })
 export class CuentasComponent {
   private api = inject(KontiaApi);
   cuentas = signal<AccountNode[]>([]);
   cargando = signal(true);
+  descargandoPdf = signal(false);
 
   constructor() {
     this.api.accounts()
@@ -65,5 +93,15 @@ export class CuentasComponent {
       income: 'ingreso', expense: 'gasto',
     };
     return m[t] ?? t;
+  }
+
+  async descargarBalanzaPdf() {
+    this.descargandoPdf.set(true);
+    try {
+      // Sin date_from/date_to: balanza histórica completa.
+      await this.api.trialBalancePdf();
+    } finally {
+      this.descargandoPdf.set(false);
+    }
   }
 }

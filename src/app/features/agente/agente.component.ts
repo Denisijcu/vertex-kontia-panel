@@ -177,6 +177,11 @@ export class AgenteComponent {
 
   constructor() {
     this.cargarPendientes();
+     const prefill = sessionStorage.getItem('agente_prefill');
+    if (prefill) {
+      this.texto = prefill;
+      sessionStorage.removeItem('agente_prefill');
+    }
   }
 
   async clasificar() {

@@ -10,6 +10,8 @@ export interface SessionUser {
   full_name: string;
   role: string;
   tenant_id: string;
+  tenant_name: string;
+  is_platform_admin: boolean;
 }
 
 interface LoginResponse {
@@ -31,6 +33,7 @@ export class AuthService {
     JSON.parse(localStorage.getItem(USER_KEY) ?? 'null')
   );
   readonly isLoggedIn = computed(() => this.token() !== null);
+  readonly isPlatformAdmin = computed(() => this.user()?.is_platform_admin ?? false);
 
   async login(email: string, password: string): Promise<void> {
     const r = await firstValueFrom(

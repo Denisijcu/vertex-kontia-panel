@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../core/services/auth.service';
 import {
   BalanceSheet,
   ExpensesByActivity,
@@ -10,7 +11,7 @@ import {
   selector: 'app-dashboard',
   standalone: true,
   template: `
-    <div class="eyebrow">Vertex Coders LLC · {{ hoy }}</div>
+    <div class="eyebrow">{{ auth.user()?.tenant_name ?? 'Kontia' }} · {{ hoy }}</div>
     <h1 class="titulo">Dashboard</h1>
 
     <!-- ============ EL SELLO DE CUADRE ============ -->
@@ -52,7 +53,16 @@ import {
     <div class="grid">
       @if (balance(); as b) {
         <section class="card">
-          <div class="eyebrow">Balance general al {{ b.as_of }}</div>
+          <div class="cabecera-reporte">
+            <div class="eyebrow">Balance general al {{ b.as_of }}</div>
+            <button
+              class="btn-pdf"
+              (click)="descargarBalancePdf()"
+              [disabled]="descargandoBalance()"
+            >
+              {{ descargandoBalance() ? 'Generando…' : 'Descargar PDF' }}
+            </button>
+          </div>
           <table>
             <thead>
               <tr><th>Cuenta</th><th class="cifra">Saldo</th></tr>
@@ -269,16 +279,38 @@ import {
         border-top: 2px solid var(--linea);
         font-weight: 600;
       }
+      /* --- Botón de descarga de PDF (punto 15) --- */
+      .cabecera-reporte {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 4px;
+      }
+      .btn-pdf {
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: var(--radio);
+        border: 1px solid var(--linea);
+        background: var(--superficie-2);
+        color: var(--papel);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn-pdf:hover { border-color: var(--laton); color: var(--laton); }
+      .btn-pdf:disabled { opacity: 0.5; cursor: default; }
     `,
   ],
 })
 export class DashboardComponent {
   private api = inject(KontiaApi);
+  auth = inject(AuthService);
 
   balance = signal<BalanceSheet | null>(null);
   resultados = signal<IncomeStatement | null>(null);
   gastos = signal<ExpensesByActivity | null>(null);
   error = signal<string | null>(null);
+  descargandoBalance = signal(false);
 
   hoy = new Date().toISOString().slice(0, 10);
   inicioAno = `${new Date().getFullYear()}-01-01`;
@@ -318,5 +350,14 @@ export class DashboardComponent {
     if (!total || total <= 0) return 0;
     const p = Math.round((v / total) * 1000) / 10;
     return Math.min(100, Math.max(0, p));
+  }
+
+  async descargarBalancePdf() {
+    this.descargandoBalance.set(true);
+    try {
+      await this.api.balanceSheetPdf(this.hoy);
+    } finally {
+      this.descargandoBalance.set(false);
+    }
   }
 }

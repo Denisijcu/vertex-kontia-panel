@@ -5,8 +5,15 @@ import { Entry, KontiaApi } from '../../core/services/kontia-api.service';
   selector: 'app-asientos',
   standalone: true,
   template: `
-    <div class="eyebrow">Libro diario · orden descendente por folio</div>
-    <h1 class="titulo">Asientos</h1>
+    <div class="cabecera">
+      <div>
+        <div class="eyebrow">Libro diario · orden descendente por folio</div>
+        <h1 class="titulo">Asientos</h1>
+      </div>
+      <button class="btn-pdf" (click)="descargarPdf()" [disabled]="descargandoPdf()">
+        {{ descargandoPdf() ? 'Generando…' : 'Descargar PDF' }}
+      </button>
+    </div>
 
     @if (cargando()) {
       <section class="card tenue">Leyendo el libro…</section>
@@ -82,6 +89,26 @@ import { Entry, KontiaApi } from '../../core/services/kontia-api.service';
     .detalle td { background: var(--tinta); padding: 12px 18px; }
     .lineas th { font-size: 10px; }
     .mas { margin-top: 16px; }
+    /* --- Botón de descarga de PDF (punto 15) --- */
+    .cabecera {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-pdf {
+      font-size: 12px;
+      padding: 7px 14px;
+      border-radius: var(--radio);
+      border: 1px solid var(--linea);
+      background: var(--superficie-2);
+      color: var(--papel);
+      cursor: pointer;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .btn-pdf:hover { border-color: var(--laton); color: var(--laton); }
+    .btn-pdf:disabled { opacity: 0.5; cursor: default; }
   `],
 })
 export class AsientosComponent {
@@ -90,6 +117,7 @@ export class AsientosComponent {
   cargando = signal(true);
   abierto = signal<string | null>(null);
   hayMas = signal(false);
+  descargandoPdf = signal(false);
 
   constructor() {
     this.api.entries(50).then((e) => {
@@ -118,5 +146,16 @@ export class AsientosComponent {
   monto(v: string): string {
     const n = parseFloat(v);
     return n > 0 ? n.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : '—';
+  }
+
+  async descargarPdf() {
+    this.descargandoPdf.set(true);
+    try {
+      // Sin date_from/date_to: el libro diario completo, no solo los
+      // 50 folios paginados que se ven en pantalla.
+      await this.api.journalEntriesPdf();
+    } finally {
+      this.descargandoPdf.set(false);
+    }
   }
 }

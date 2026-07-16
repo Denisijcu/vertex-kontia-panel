@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { AuthService } from '../../core/services/auth.service';
 import { StatusService } from '../../core/services/status.service';
 
 
@@ -7,7 +8,8 @@ import { StatusService } from '../../core/services/status.service';
  *
  * Lleva la Ecuación Viva (A = P + PN en miniatura) visible en TODA
  * pantalla: la promesa central del producto nunca sale del ojo.
- * Derecha: período fiscal activo y el semáforo maestro de integridad.
+ * Derecha: período fiscal activo, el semáforo maestro de integridad,
+ * quién está logueado, y el botón de salir.
  */
 @Component({
   selector: 'app-header',
@@ -44,6 +46,13 @@ import { StatusService } from '../../core/services/status.service';
           [class.pulso]="status.verificando()"
           [title]="titulo()"
         ></span>
+        <span class="divisor"></span>
+        @if (auth.user(); as u) {
+          <span class="usuario tenue" [title]="u.email">{{ u.full_name }}</span>
+        }
+        <button class="btn-salir" (click)="auth.logout()" title="Cerrar sesión">
+          Salir
+        </button>
       </div>
     </header>
   `,
@@ -103,15 +112,38 @@ import { StatusService } from '../../core/services/status.service';
       .semaforo.mal { background: var(--roto);     box-shadow: 0 0 8px color-mix(in srgb, var(--roto) 60%, transparent); }
       .semaforo.pulso { animation: latido 1.2s ease-in-out infinite; }
       @keyframes latido { 50% { opacity: 0.35; } }
+      .usuario {
+        font-size: 12px;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .btn-salir {
+        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 3px;
+        border: 1px solid var(--linea);
+        background: transparent;
+        color: var(--papel-tenue);
+        cursor: pointer;
+        letter-spacing: 0.04em;
+      }
+      .btn-salir:hover {
+        border-color: var(--roto);
+        color: var(--roto);
+      }
       @media (max-width: 800px) {
         .barra { padding: 0 14px; }
         .ecuacion-viva { display: none; }
+        .usuario { display: none; }
       }
     `,
   ],
 })
 export class HeaderComponent {
   status = inject(StatusService);
+  auth = inject(AuthService);
 
   hoy = new Date().toISOString().slice(0, 10);
   periodo = this.hoy.slice(0, 7); // períodos mensuales: 2026-07

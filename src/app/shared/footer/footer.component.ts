@@ -1,4 +1,5 @@
 import { Component, OnDestroy, inject, signal } from '@angular/core';
+import { AuthService } from '../../core/services/auth.service';
 import { StatusService } from '../../core/services/status.service';
 
 /**
@@ -36,7 +37,7 @@ import { StatusService } from '../../core/services/status.service';
         <span class="sep">·</span>
         <span title="Hora del ledger (UTC)">{{ utc() }} UTC</span>
         <span class="sep">·</span>
-        <span class="tenue">© 2026 Vertex Coders LLC</span>
+        <span class="tenue">© 2026 {{ auth.user()?.tenant_name ?? 'Kontia' }}</span>
       </div>
     </footer>
   `,
@@ -74,6 +75,7 @@ import { StatusService } from '../../core/services/status.service';
 })
 export class FooterComponent implements OnDestroy {
   status = inject(StatusService);
+  auth = inject(AuthService);
 
   utc = signal(this.ahora());
   private tick = setInterval(() => this.utc.set(this.ahora()), 1000);

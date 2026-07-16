@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from './core/services/auth.service';
 import { FooterComponent } from './shared/footer/footer.component';
 import { HeaderComponent } from './shared/header/header.component';
 
@@ -15,7 +16,7 @@ import { HeaderComponent } from './shared/header/header.component';
         <aside class="sidebar">
           <div class="brand">
             <span class="display brand-name">Kontia</span>
-            <span class="brand-sub">Vertex Coders LLC</span>
+            <span class="brand-sub">{{ auth.user()?.tenant_name ?? 'Kontia' }}</span>
           </div>
 
           <nav>
@@ -25,7 +26,21 @@ import { HeaderComponent } from './shared/header/header.component';
             <a routerLink="/cuentas" routerLinkActive="activa">Cuentas</a>
             <a routerLink="/activos" routerLinkActive="activa">Activos</a>
             <a routerLink="/facturas" routerLinkActive="activa">Facturas</a>
-            
+            <a routerLink="/conciliacion" routerLinkActive="activa">Conciliación</a>
+            <a routerLink="/hallazgos" routerLinkActive="activa">Hallazgos</a>
+            @if (auth.user()?.role !== 'viewer') {
+              <a routerLink="/migracion" routerLinkActive="activa">Migración</a>
+            }
+            @if (auth.user()?.role === 'owner') {
+              <a routerLink="/usuarios" routerLinkActive="activa">Usuarios</a>
+              <a routerLink="/api-keys" routerLinkActive="activa">API Keys</a>
+              <a routerLink="/cierre" routerLinkActive="activa">Cierre</a>
+            }
+            @if (auth.isPlatformAdmin()) {
+              <a routerLink="/admin/tenants" routerLinkActive="activa" class="admin-link">
+                Admin
+              </a>
+            }
           </nav>
         </aside>
 
@@ -73,6 +88,15 @@ import { HeaderComponent } from './shared/header/header.component';
         border-left-color: var(--laton);
         color: var(--laton);
       }
+      nav a.admin-link {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--linea);
+        color: var(--laton);
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
       .pronto { padding: 9px 12px; font-size: 13px; color: var(--papel-tenue); opacity: 0.6; }
       .contenido { padding: 32px 40px; max-width: 1100px; }
       @media (max-width: 800px) {
@@ -85,4 +109,6 @@ import { HeaderComponent } from './shared/header/header.component';
     `,
   ],
 })
-export class App {}
+export class App {
+  auth = inject(AuthService);
+}
