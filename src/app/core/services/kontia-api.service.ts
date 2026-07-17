@@ -368,6 +368,12 @@ export class KontiaApi {
     );
   }
 
+  reverseEntry(entryId: string, reason: string): Promise<Entry> {
+    return firstValueFrom(
+      this.http.post<Entry>(`${this.base}/entries/${entryId}/reverse`, { reason })
+    );
+  }
+
   accounts(): Promise<AccountNode[]> {
     return firstValueFrom(
       this.http.get<AccountNode[]>(`${this.base}/accounts`)

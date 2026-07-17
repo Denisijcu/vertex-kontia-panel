@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../core/services/auth.service';
 import { Entry, KontiaApi } from '../../core/services/kontia-api.service';
 
 @Component({
@@ -25,29 +26,40 @@ import { Entry, KontiaApi } from '../../core/services/kontia-api.service';
           <thead>
             <tr>
               <th>Folio</th><th>Fecha</th><th>Descripción</th>
-              <th>Origen</th><th>Estado</th><th class="cifra">Total</th><th>Sello</th>
+              <th>Origen</th><th>Estado</th><th class="cifra">Total</th><th>Sello</th><th></th>
             </tr>
           </thead>
           <tbody>
             @for (e of asientos(); track e.id) {
-              <tr class="fila" (click)="alternar(e.id)">
-                <td class="cifra">#{{ e.entry_no }}</td>
-                <td class="cifra">{{ e.entry_date }}</td>
-                <td>{{ e.description }}</td>
-                <td><span class="chip">{{ e.source_module }}</span></td>
-                <td>
+              <tr class="fila">
+                <td class="cifra" (click)="alternar(e.id)">#{{ e.entry_no }}</td>
+                <td class="cifra" (click)="alternar(e.id)">{{ e.entry_date }}</td>
+                <td (click)="alternar(e.id)">{{ e.description }}</td>
+                <td (click)="alternar(e.id)"><span class="chip">{{ e.source_module }}</span></td>
+                <td (click)="alternar(e.id)">
                   <span class="estado" [class.rev]="e.status === 'reversed'">
                     {{ e.status }}
                   </span>
                 </td>
-                <td class="cifra">{{ total(e) }}</td>
-                <td class="cifra hash" [title]="e.entry_hash ?? ''">
+                <td class="cifra" (click)="alternar(e.id)">{{ total(e) }}</td>
+                <td class="cifra hash" [title]="e.entry_hash ?? ''" (click)="alternar(e.id)">
                   {{ e.entry_hash?.slice(0, 10) }}…
+                </td>
+                <td>
+                  @if (e.status === 'posted' && soyOwner()) {
+                    <button
+                      class="btn-revertir"
+                      (click)="revertir(e); $event.stopPropagation()"
+                      [disabled]="revirtiendo() === e.id"
+                    >
+                      {{ revirtiendo() === e.id ? '…' : 'Revertir' }}
+                    </button>
+                  }
                 </td>
               </tr>
               @if (abierto() === e.id) {
                 <tr class="detalle">
-                  <td colspan="7">
+                  <td colspan="8">
                     <table class="lineas">
                       <thead>
                         <tr><th>Cuenta</th><th class="cifra">Debe</th><th class="cifra">Haber</th><th>Memo</th></tr>
@@ -109,17 +121,40 @@ import { Entry, KontiaApi } from '../../core/services/kontia-api.service';
     }
     .btn-pdf:hover { border-color: var(--laton); color: var(--laton); }
     .btn-pdf:disabled { opacity: 0.5; cursor: default; }
+    /* --- Botón de revertir (storno) --- */
+    .btn-revertir {
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: var(--radio);
+      border: 1px solid var(--roto);
+      background: transparent;
+      color: var(--roto);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-revertir:hover { background: var(--roto); color: var(--tinta); }
+    .btn-revertir:disabled { opacity: 0.5; cursor: default; }
   `],
 })
 export class AsientosComponent {
   private api = inject(KontiaApi);
+  private auth = inject(AuthService);
+
   asientos = signal<Entry[]>([]);
   cargando = signal(true);
   abierto = signal<string | null>(null);
   hayMas = signal(false);
   descargandoPdf = signal(false);
+  revirtiendo = signal<string | null>(null);
+
+  soyOwner = () => this.auth.user()?.role === 'owner';
 
   constructor() {
+    this.cargar();
+  }
+
+  private cargar() {
+    this.cargando.set(true);
     this.api.entries(50).then((e) => {
       this.asientos.set(e);
       this.hayMas.set(e.length === 50);
@@ -156,6 +191,25 @@ export class AsientosComponent {
       await this.api.journalEntriesPdf();
     } finally {
       this.descargandoPdf.set(false);
+    }
+  }
+
+  async revertir(e: Entry) {
+    const razon = prompt(
+      `Motivo para revertir el asiento #${e.entry_no} (queda en el audit log):`
+    );
+    if (!razon || razon.trim().length < 3) return;
+    if (!confirm(`¿Revertir el asiento #${e.entry_no}? Se crea un asiento espejo, el original queda marcado como revertido.`)) {
+      return;
+    }
+    this.revirtiendo.set(e.id);
+    try {
+      await this.api.reverseEntry(e.id, razon.trim());
+      this.cargar();
+    } catch (err: any) {
+      alert(err?.error?.detail ?? 'No se pudo revertir el asiento.');
+    } finally {
+      this.revirtiendo.set(null);
     }
   }
 }

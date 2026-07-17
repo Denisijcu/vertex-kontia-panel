@@ -1,0 +1,36 @@
+{
+  "name": "Kontia — Contabilidad con Agente de IA",
+  "short_name": "Kontia",
+  "description": "Partida doble automática, con un contador de inteligencia artificial que nunca duerme.",
+  "display": "standalone",
+  "scope": "./",
+  "start_url": "./",
+  "theme_color": "#12121a",
+  "background_color": "#12121a",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
