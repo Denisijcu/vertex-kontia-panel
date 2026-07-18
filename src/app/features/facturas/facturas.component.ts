@@ -8,6 +8,8 @@ import {
 } from '../../core/services/kontia-api.service';
 import { StatusService } from '../../core/services/status.service';
 
+import { ScanInvoiceComponent } from '../invoices/scan-invoice/scan-invoice.component';
+
 const COST_CENTERS = [
   '', 'KONTIA', 'SEISMIC', 'DENTIAPRO', 'OSINT', 'CIVIX',
   'CLAUSTORE', 'LINGUAIT', 'VCUP', 'GENERAL',
@@ -16,7 +18,7 @@ const COST_CENTERS = [
 @Component({
   selector: 'app-facturas',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ScanInvoiceComponent],
   template: `
     <div class="eyebrow">Subledger AR/AP · asientos vía posting engine</div>
     <h1 class="titulo">Facturas</h1>
@@ -125,6 +127,7 @@ const COST_CENTERS = [
       @if (facturas().length === 0) {
         <p class="vacio">Sin facturas {{ direccion() === 'receivable' ? 'por cobrar' : 'por pagar' }} todavía.</p>
       } @else {
+        <app-scan-invoice />
         <table>
           <thead>
             <tr>
